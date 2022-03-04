@@ -1,0 +1,63 @@
+  "images": [
+        {
+            "license": 4,
+            "file_name": "000000397133.jpg",
+            "coco_url": "http://images.cocodataset.org/val2017/000000397133.jpg",
+            "height": 427,
+            "width": 640,
+            "date_captured": "2013-11-14 17:02:52",
+            "flickr_url": "http://farm7.staticflickr.com/6116/6255196340_da26cf2c9e_z.jpg",
+            "id": 397133
+        },
+        {
+            "license": 2,
+            "file_name": "000000289343.jpg",
+            "coco_url": "http://images.cocodataset.org/val2017/000000289343.jpg",
+            "height": 640,
+            "width": 529,
+            "date_captured": "2013-11-15 00:35:14",
+            "flickr_url": "http://farm5.staticflickr.com/4029/4669549715_7db3735de0_z.jpg",
+            "id": 289343
+        },
+]
+
+
+"annotations": [
+{
+    "segmentation": [
+	[
+	
+
+	]
+    ],
+    "area": 702.1057499999998,
+    "iscrowd": 0,
+    "image_id": 289343,
+    "bbox": [
+	473.07,
+	395.93,
+	38.65,
+	28.67
+    ],
+    "category_id": 18,
+    "id": 1768
+},
+{
+    "segmentation": [
+        [
+           
+        ]
+    ],
+    "area": 5463.686400000002,
+    "iscrowd": 0,
+    "image_id": 289343,
+    "bbox": [
+        204.01,
+        235.08,
+        60.84,
+        177.36
+    ],
+    "category_id": 1,
+    "id": 201376
+},
+]
