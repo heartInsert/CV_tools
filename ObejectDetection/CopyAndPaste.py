@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import cv2
 import os
+from ObejectDetection.CocoTest.CocoLook import cocoLook_ByBBox
 
 
 class Image_obj(object):
@@ -19,7 +20,7 @@ class Image_obj(object):
 class Bbox_obj(object):
     def __init__(self):
         pass
-    
+
 
 class Annotation_obj(object):
     def __init__(self, Annotation_obj):
@@ -83,6 +84,28 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', eps=1e-6):
     return ious
 
 
+def bbox_overlaps_wh(bboxes1, bboxes2, mode='iou', eps=1e-6):
+    '''
+    gtbbox = torch.tensor([[10.0, 10.0, 20.0, 20.0], [10.0, 10.0, 60.0, 20.0], [10.0, 10.0, 60.0, 20.0]]).float()
+    anchor = torch.tensor([[10, 10, 20, 20], [10, 10, 30, 30]]).float()
+    bbox_overlaps(gtbbox, anchor)
+    bbox[x_min,y_min,width,height]
+    '''
+    if type(bboxes1) is np.ndarray:
+        bboxes1 = torch.tensor(bboxes1).float()
+        bboxes2 = torch.tensor(bboxes2).float()
+    assert mode in ['iou', 'iof', 'giou'], f'Unsupported mode {mode}'
+    # Either the boxes are empty or the length of boxes' last dimension is 4
+    assert (bboxes1.size(-1) == 4 or bboxes1.size(0) == 0)
+    assert (bboxes2.size(-1) == 4 or bboxes2.size(0) == 0)
+    bboxes1[..., 2] = bboxes1[..., 2] + bboxes1[..., 0]
+    bboxes1[..., 3] = bboxes1[..., 3] + bboxes1[..., 1]
+    bboxes2[..., 2] = bboxes2[..., 2] + bboxes2[..., 0]
+    bboxes2[..., 3] = bboxes2[..., 3] + bboxes2[..., 1]
+    ious = bbox_overlaps(bboxes1, bboxes2, mode)
+    return ious
+
+
 def json2dict(json_file):
     images = json_file['images']
     annotations = json_file['annotations']
@@ -99,14 +122,22 @@ def generate_bbox(bbox, img_width, img_height):
     x_range, y_range = img_width - width, img_height - height
     x_min = random.randint(0, x_range)
     y_min = random.randint(0, y_range)
-    target_box = x_min, y_min, width, height
-    stack_box = {'original_box': bbox, 'target_box': target_box}
+    target_box = [[x_min, y_min, width, height]]
+    stack_box = {'source_box': np.array(bbox), 'target_box': np.array(target_box)}
     return stack_box
+
+
+def copy_and_paste(img_dir1, img_dir2, source_bbox, target_bbox):
+    cocoLook_ByBBox(img_dir1, source_bbox)
+
+    cocoLook_ByBBox(img_dir2, target_bbox)
+
+    pass
 
 
 def main():
     train_json = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/DcicCoco_train.json'
-    img_dir = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/A'
+    source_img_folder = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/A'
     target_json_dir = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset' \
                       '/DcicCoco_augment_train.json '
     target_img_dir = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/augment_img'
@@ -114,7 +145,7 @@ def main():
         Train_json_file = json.load(f)
     anno_infos = Train_json_file['annotations']
     id_list = [int(anno['id']) for anno in anno_infos]
-    id_max = id_list[-1]
+    ID_max = id_list[-1]
     Train_json_file = json2dict(Train_json_file)
     target_json_file = copy.deepcopy(Train_json_file)
     keys = Train_json_file.keys()
@@ -128,16 +159,15 @@ def main():
             for i in range(5):
                 # Train
                 stack_box = generate_bbox(Train_anno['bbox'], image_info.width, image_info.height)
-                x_min, y_min, width, height = stack_box['target_box']
-                Train_anno_bbox = np.array([[x_min, y_min, x_min + width, y_min + height]])
                 # target
                 target_key = random.choice(list(keys))
                 target_annotation = target_json_file[target_key]['annotation']
-                ious = bbox_overlaps(Train_anno_bbox, target_annotation.bboxes_xmax_ymax())
+                ious = bbox_overlaps_wh(stack_box['target_box'], target_annotation.bboxes_xmax_ymax())
                 if ious.sum() == 0:
                     # overlap ==0
-                    # x_min, y_min, width, height = Train_anno['bbox']
-                    Train_img = cv2.imread(os.path.join(img_dir, image_info.file_name))
+                    source_img_dir = os.path.join(source_img_folder, Train_annotation['file_name'])
+                    target_img_dir = os.path.join(source_img_folder, target_json_file[target_key]['image']['file_name'])
+                    copy_and_paste(source_img_dir, target_img_dir, stack_box['source_box'], stack_box['target_box'])
 
                     n_aug = n_aug + 1
                     if n_aug >= 2:

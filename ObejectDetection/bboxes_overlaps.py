@@ -81,8 +81,8 @@ def anno2bboxes(anotations):
 
 
 if __name__ == "__main__":
-    gt_json_path = '/home/xjz/Desktop/Coding/PycharmProjects/competition/Help_Tools/CV_tools/ObejectDetection/data/bbox_overlap_gtbox.json'
-    predict_json_path = '/home/xjz/Desktop/Coding/PycharmProjects/competition/Help_Tools/CV_tools/ObejectDetection/data/bbox_overlap_predict.json'
+    gt_json_path = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/DcicCoco_val.json'
+    predict_json_path = '/home/xjz/Desktop/Coding/DL_Data/ObjectDetection/DCICweixing/training_dataset/DcicCoco_predict.json'
     with open(gt_json_path, 'r') as f:
         gt_json = json.load(f)
     with open(predict_json_path, 'r') as f:
